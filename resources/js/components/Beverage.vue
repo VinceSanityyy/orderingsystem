@@ -1,0 +1,156 @@
+<template>
+    <div class="container">
+      <button @click="newModal"  class="btn btn-info pull-left" data-toggle="modal" data-target="#exampleModal">Add New</button>
+
+      <table class="table table-hover">
+          <thead>
+            <tr>
+              <th scope="col">Beverage Name</th>
+              <th scope="col">Status</th>
+              <th scope="col">Price</th>
+              <th scope="col">Actions</th>
+          </tr>
+      </thead>
+      <tbody>
+      </tr>
+      <tr v-for="beverage in beverages.data" :key="beverage.id">
+          <td>{{beverage.beverage_name}}</td>
+          <td>{{beverage.status}}</td>
+          <td>{{beverage.price}}</td>
+          <td>
+              <button class="btn btn-warning" data-toggle="modal" data-target="#exampleModal" @click="editModal(beverage)" >Edit</button>
+              <button class="btn btn-danger" >Delete</button>
+          </td>
+      </tr>
+  </tbody>
+</table>
+
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+
+         <h4 v-show="!editmode" class="modal-title" id="exampleModalLabel">Add</h4>
+         <h4 v-show="editmode" class="modal-title" id="addNewLabel">Update</h4>
+
+
+         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+      </button>
+  </div>
+  <form @submit.prevent="editmode ? updateBeverage() : addBeverage()">
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Beverage</label>
+          <input v-model="form.beverage_name" type="text" name="beverage_name"
+          class="form-control" :class="{ 'is-invalid': form.errors.has('beverage_name') }">
+          <has-error :form="form" field="beverage_name"></has-error>
+      </div>
+
+      <div class="form-group">
+          <label>Status</label>
+          <input v-model="form.status" type="text" name="status"
+          class="form-control" :class="{ 'is-invalid': form.errors.has('status') }">
+          <has-error :form="form" field="status"></has-error>
+      </div>
+
+
+        <div class="form-group">
+          <label>Price</label>
+          <input v-model="form.price" type="text" name="price"
+          class="form-control" :class="{ 'is-invalid': form.errors.has('price') }">
+          <has-error :form="form" field="price"></has-error>
+      </div>
+
+      <div class="form-group">
+        <label>Image</label>
+        <input type="file" name="file" >
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </div>
+</div>
+</form>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+
+
+
+
+</template>
+
+<script>
+    export default {
+        data(){
+            return{
+                  editmode: false,
+            beverages: {},
+            form: new Form({
+                id:'',
+                beverage_name: '',
+                status: '',
+                image:'',
+                price: '',
+
+                 })
+            }
+        },
+        methods:{
+            getBeverages(){
+                axios.get("api/beverage")
+                    .then(({data})=>(this.beverages = data))
+            },
+
+            addBeverage(){
+                this.form.post("api/beverage")
+                    .then(()=>{
+                        $("#exampleModal").modal("hide")
+                        $(".modal-backdrop").remove()
+                    })
+                    alert('Success')
+                    this.getBeverages()
+            },
+
+            updateBeverage(){
+                this.editmode =true
+                this.form.put('api/beverage/' + this.form.id)
+                    .then(()=>{
+                         $("#exampleModal").modal("hide")
+                         $(".modal-backdrop").remove()
+                    })
+                alert('Success')
+                this.getBeverages();
+            },
+
+            newModal(){
+                this.editmode = false
+                this.form.reset()
+                $("#exampleModal").modal('show')
+
+            },
+
+            editModal(beverage){
+                this.editmode = true   
+                this.form.reset()
+                $("#exampleModal").modal('show')
+                this.form.fill(beverage)
+             },
+
+        },
+
+        created() {
+            this.getBeverages()
+            console.log('Component mounted.')
+        }
+    }
+</script>
